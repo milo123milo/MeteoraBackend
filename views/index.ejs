@@ -1,0 +1,20 @@
+<head>
+    <link rel="stylesheet" href="/stylesheets/bootstrap.min.css" />
+    <link rel="stylesheet" href="/stylesheets/index.css" />
+    <link rel="stylesheet" href="/stylesheets/header.css" />
+    
+</head>
+
+<%- include('comps/header', {name: name, title: 'Settings'}); %>
+
+</div>
+
+<div class="menu">
+    <div class="admin-items">
+            <% if(role === 'admin'){ %>
+                <%- include('comps/card', {admin: true,href: '/users' , link: '/images/user.svg' , title: "Users" }); %>
+            <% } %>
+    </div>
+    
+</div>
+<script src="/javascripts/logout.js"></script>

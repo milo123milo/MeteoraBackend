@@ -1,0 +1,40 @@
+.header {
+
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    margin: 100px;
+    align-items: flex-end;
+    border-bottom: 1px solid #a6a6a6;
+}
+
+.head-left {
+    display: flex;
+    align-items: center;
+    padding-bottom: 5px;
+}
+.name {
+    padding-right: 15px;
+    margin: 0 !important;
+}
+
+.bt {
+    
+    flex-direction: row;
+    margin-left: 10px;
+   
+    display: flex !important;
+    align-items: center !important;
+}
+
+.modal {
+    overflow-y: auto;
+}
+
+.modal-open {
+    overflow: auto;
+}
+
+.modal-open[style] {
+    padding-right: 0px !important;
+}
