@@ -29,6 +29,11 @@ const router = require('./routes/index');
 
 var routers = express.Router();
 
+const PORT = process.env.PORT || 3000; // Use the environment variable or port 3000 by default
+
+console.log(`Server is running on port ${PORT}`);
+
+
 
 
 
@@ -90,7 +95,6 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
-
 
 
 
