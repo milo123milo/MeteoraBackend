@@ -34,7 +34,7 @@ const PORT = process.env.PORT || 3000; // Use the environment variable or port 3
 console.log(`Server is running on port ${PORT}`);
 
 
-
+app.use(cors());
 
 
 initializePassport(
@@ -43,7 +43,7 @@ initializePassport(
   query.getUserById
  
 )
-app.use(cors());
+
 
 app.use(flash())
 app.use(session({

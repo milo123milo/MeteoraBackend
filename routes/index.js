@@ -2,6 +2,132 @@ var express = require('express');
 var auth = require('./rules/authCheck');
 var router = express.Router();
 const passport = require('passport');
+var pool = require('../database/queries')
+
+const sampleData = {
+  airtemp: 25.5,
+  airhum: 60,
+  windspeed: 15,
+  winddirection: 180,
+  atmopres: 1015,
+  rainamount: 5.5,
+  solarrad: 800,
+  soilhum1: 40,
+  soilhum2: 35,
+  soiltemp1: 22,
+  soiltemp2: 20,
+  signal: 80,
+  battery: 90,
+  solar: 12,
+  intemp: 22.5,
+  inhum: 55,
+  inatmopres: 1010,
+  imei: '123456789012345'
+};
+
+const realSampleData = {
+  "common_list":[
+     {
+        "id":"0x02",
+        "val":"21.0",
+        "unit":"C"
+     },
+     {
+        "id":"0x07",
+        "val":"53%"
+     },
+     {
+        "id":"3",
+        "val":"21.0",
+        "unit":"C"
+     },
+     {
+        "id":"0x05",
+        "val":"21.0",
+        "unit":"C"
+     },
+     {
+        "id":"0x03",
+        "val":"11.1",
+        "unit":"C"
+     },
+     {
+        "id":"0x04",
+        "val":"21.0",
+        "unit":"C"
+     },
+     {
+        "id":"0x0B",
+        "val":"0.0 m/s"
+     },
+     {
+        "id":"0x0C",
+        "val":"0.0 m/s"
+     },
+     {
+        "id":"0x19",
+        "val":"2.0 m/s"
+     },
+     {
+        "id":"0x15",
+        "val":"0.13 W/m2"
+     },
+     {
+        "id":"0x17",
+        "val":"0"
+     },
+     {
+        "id":"0x0A",
+        "val":"2"
+     }
+  ],
+  "rain":[
+     {
+        "id":"0x0D",
+        "val":"0.5 mm"
+     },
+     {
+        "id":"0x0E",
+        "val":"0.0 mm/Hr"
+     },
+     {
+        "id":"0x10",
+        "val":"0.5 mm"
+     },
+     {
+        "id":"0x11",
+        "val":"0.5 mm"
+     },
+     {
+        "id":"0x12",
+        "val":"0.5 mm"
+     },
+     {
+        "id":"0x13",
+        "val":"0.5 mm",
+        "battery":"0"
+     }
+  ],
+  "wh25":[
+     {
+        "intemp":"21.6",
+        "unit":"C",
+        "inhumi":"49%",
+        "abs":"1024.0 hPa",
+        "rel":"1024.0 hPa"
+     }
+  ],
+  "signal":"AT+CSQ +CSQ: 25,99 OK",
+  "imei":"AT+GSN 1010100001 OK",
+  "battery":"1",
+  "spanel":"1",
+  "sht1":"1",
+  "sht2":"1" }
+
+function getItemValueById(array, id) {
+    const item = array.find(item => item.id === id);
+    return item ? item.val : null;
+}
 
 /* GET home page. */
 router.get('/', auth.done, function(req, res, next) {
@@ -59,6 +185,46 @@ router.post('/check-session', checkSession, (req, res) => {
 });
 
 router.post('/uploadData', (req, res) => {
+
+  console.log(req.body)
+
+  const recivedData = req.body//realSampleData
+
+  const adaptedData = {}
+
+  adaptedData.airtemp = getItemValueById(recivedData.common_list, "0x02").replace(/[^\d.]/g, '')
+  adaptedData.airhum = getItemValueById(recivedData.common_list, "0x07").replace(/[^\d.]/g, '')
+  adaptedData.windspeed = getItemValueById(recivedData.common_list, "0x0B").replace(/[^\d.]/g, '')
+  adaptedData.winddirection = getItemValueById(recivedData.common_list, "0x0A") .replace(/[^\d.]/g, '')
+  adaptedData.rainamount = getItemValueById(recivedData.rain, "0x0D").replace(/[^\d.]/g, '')
+  adaptedData.solarrad = getItemValueById(recivedData.common_list, "0x15").replace(/[^\d.]/g, '')
+  adaptedData.atmopres = recivedData.wh25[0].abs.replace(/[^\d.]/g, '')
+
+  adaptedData.soilhum1 = recivedData.sht1 //treba parsovati
+  adaptedData.soilhum2 = recivedData.sht2 //
+  adaptedData.soiltemp1 = recivedData.sht1 //
+  adaptedData.soiltemp2 = recivedData.sht2 // ova cetri
+
+  const parseSignal = recivedData.signal.replace(/AT\+CSQ|\+CSQ:|OK/g, '') ;
+  adaptedData.signal =  parseSignal.replace(/[^\d,]/g, '').replace(/,/g, '.') 
+  adaptedData.signal =  /^\d.+$/.test(adaptedData.signal) ? adaptedData.signal : '0'
+
+  adaptedData.battery = recivedData.battery
+  adaptedData.solar = recivedData.spanel
+  adaptedData.intemp = recivedData.wh25[0].intemp
+  adaptedData.inhum = recivedData.wh25[0].inhumi.replace(/[^\d.]/g, '')
+  adaptedData.inatmopres = recivedData.wh25[0].abs.replace(/[^\d.]/g, '')
+
+  adaptedData.imei =  recivedData.imei.replace(/^AT\+GSN\s+| OK$/g, '') 
+  adaptedData.imei =  /^\d+$/.test(adaptedData.imei) ? adaptedData.imei : '0'
+
+
+  console.log(adaptedData)
+
+
+  pool.importData(adaptedData, (err, result) => {
+    console.log(result)
+  })
   // Print the received data
   console.log('Received POST data:', req.body);
 
@@ -66,26 +232,36 @@ router.post('/uploadData', (req, res) => {
   res.status(200).send('Data received successfully');
 });
 
-router.post('/getStationData/:id', checkSession, (req, res) => {
+router.post('/getStationData/:id', checkSession, async (req, res) => {
   const id = req.params.id;
   const user = req.user
+  const stations = {
+    "Station1": "1010100001",
+    "Station2": "",
+    "Station3": "",
+    "Station4": "",
+  }
+
+
+  
+  const dataStation = await pool.getLatestDataByImei(stations[id])
   
 
   var data = {
     "stationID": "Station1",
-    "airTemp": "25.5 °C",
-    "airHumi": "19.1 %",
-    "windSpeed": "5 km/h",
-    "windDirection": "20° North",
-    "airPressure": "1010 hPa",
-    "rainAmount": "12.27 mm",
-    "irradiation": "1500 kW/m²",
-    "SH1": "25%",
-    "SH2": "23%",
-    "SHA": "24%", // Mora zaokruzeno na INT
-    "ST1": "15.5 °C",
-    "ST2": "17.5 °C",
-    "STA": "16 °C", // Mora zaokruzeno na INT
+    "airTemp": dataStation.airtemp + " °C",
+    "airHumi": dataStation.airhum + " %",
+    "windSpeed": dataStation.windspeed + " km/h",
+    "windDirection": dataStation.winddirection  + "° North", //kako strana svijeta?
+    "airPressure": dataStation.atmopres + " hPa",
+    "rainAmount": dataStation.rainamount + " mm",
+    "irradiation": dataStation.solarrad + " kW/m²", //vjv treba W/m kvadratni
+    "SH1": dataStation.soilhum1 + "%",
+    "SH2": dataStation.soilhum2 + "%",
+    "SHA": (dataStation.soilhum1 + dataStation.soilhum2)/2.0 + "%", // Mora zaokruzeno na INT prosjek
+    "ST1": dataStation.soiltemp1 + " °C",
+    "ST2": dataStation.soiltemp2 + " °C",
+    "STA": (dataStation.soiltemp1 + dataStation.soiltemp2)/2.0 + " °C", // Mora zaokruzeno na INT
     "L7DA":  [ {
       "name": "Temperature",
       "data": [22, 21, 24, 20, 19, 21, 23],
@@ -123,30 +299,30 @@ router.post('/getStationData/:id', checkSession, (req, res) => {
       }
     },
     "systemData": {
-      "Online": false,
+      "Online": true,
       "Signal": {
         "status": "-",
-        "value": "80 %"
+        "value": ((dataStation.signalval * 100)/35).toFixed(1) + " %"
       },
       "Battery": {
-        "status": "11.9 V",
-        "value": "87 %"
+        "status": dataStation.battery + " V",
+        "value": (dataStation.battery < 11.5) ? "0 %" : (((dataStation.battery - 11.5) * 100) / (13 - 11.5)).toFixed(1) + " %"
       },
       "Solar": {
-        "status": "12.6 V",
-        "value": "80 %"
+        "status": dataStation.solar + " V",
+        "value": (((dataStation.solar) / 18) * 100).toFixed(1) + " %"
       },
       "Temperature": {
         "status": "-",
-        "value": "25 °C"
+        "value": dataStation.intemp + " °C"
       },
       "Humidity": {
         "status": "-",
-        "value": "30 %"
+        "value": dataStation.inhum + " %"
       },
       "Pressure": {
         "status": "-",
-        "value": "1080 hPa"
+        "value": dataStation.inatmopres  + " hPa"
       },
     }
 

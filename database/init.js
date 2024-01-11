@@ -48,6 +48,52 @@ function initDatabase(){
         })
 
         });
+
+        const createDataTable = `
+        CREATE TABLE IF NOT EXISTS data (
+            id SERIAL PRIMARY KEY,
+            airtemp FLOAT,
+            airhum FLOAT,
+            windspeed FLOAT,
+            winddirection FLOAT,
+            atmopres FLOAT,
+            rainamount FLOAT,
+            solarrad FLOAT,
+            soilhum1 FLOAT,
+            soilhum2 FLOAT,
+            soiltemp1 FLOAT,
+            soiltemp2 FLOAT,
+            signalval FLOAT,
+            battery FLOAT,
+            solar FLOAT,
+            intemp FLOAT,
+            inhum FLOAT,
+            inatmopres FLOAT,
+            imei TEXT,
+            datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        
+        `;
+
+    const createIndexImei = 'CREATE INDEX IF NOT EXISTS idx_imei ON data (imei);';
+    const createIndexDatetime = 'CREATE INDEX IF NOT EXISTS idx_datetime ON data (datetime);';
+        
+
+    connection.query(createDataTable, (err) => {
+        if (err) throw err;
+        console.log('Data table checked/created');
+    });
+    connection.query(createIndexImei, (err) => {
+        if (err) throw err;
+        console.log('Index on imei created/checked');
+    });
+
+    connection.query(createIndexDatetime, (err) => {
+        if (err) throw err;
+        console.log('Index on datetime created/checked');
+
+        // ... (rest of the code)
+    });
     });
     });
 }

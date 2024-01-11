@@ -45,6 +45,49 @@ connection.query(sql, [username, password, role, id], (err, rows) => {
   });
 }
 
+function importData(data, callback) {
+  const sql = `
+    INSERT INTO data (
+      airtemp, airhum, windspeed, winddirection, atmopres, rainamount, solarrad,
+      soilhum1, soilhum2, soiltemp1, soiltemp2, signalval, battery, solar,
+      intemp, inhum, inatmopres, imei
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const values = [
+    data.airtemp, data.airhum, data.windspeed, data.winddirection, data.atmopres,
+    data.rainamount, data.solarrad, data.soilhum1, data.soilhum2, data.soiltemp1,
+    data.soiltemp2, data.signal, data.battery, data.solar, data.intemp, data.inhum,
+    data.inatmopres, data.imei
+  ];
+
+  connection.query(sql, values, (err, result) => {
+    if (err) throw err;
+    callback(result);
+  });
+}
+
+
+function getLatestDataByImei(imei) {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT *
+      FROM data
+      WHERE imei = ?
+      ORDER BY datetime DESC
+      LIMIT 1
+    `;
+
+    connection.query(sql, [imei], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows[0]);
+      }
+    });
+  });
+}
+
 
 module.exports = {
   getUserById,
@@ -52,5 +95,7 @@ module.exports = {
   getAllUsers,
   deleteUser,
   createUser,
-  editUser
+  editUser,
+  importData,
+  getLatestDataByImei
 };
