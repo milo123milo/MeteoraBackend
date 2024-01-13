@@ -206,7 +206,7 @@ router.post('/uploadData', (req, res) => {
 
   const recivedData = jsonObject
 
-  //console.log(recivedData)
+  console.log(recivedData)
 
 
   const adaptedData = {}
