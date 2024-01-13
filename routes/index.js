@@ -192,26 +192,40 @@ router.post('/uploadData', (req, res) => {
 
 
   //console.log(req.params.values)
+  const jsonString = req.rawBody
 
-  const recivedData = realSampleData
+  const modifiedString = decodeURIComponent(jsonString);
+
+
+
+ 
+
+  //console.log(modifiedString)
+ 
+  const jsonObject = JSON.parse(modifiedString);
+
+  const recivedData = jsonObject
+
+  //console.log(recivedData)
+
 
   const adaptedData = {}
 
-  adaptedData.airtemp = getItemValueById(recivedData.common_list, "0x02").replace(/[^\d.]/g, '')
-  adaptedData.airhum = getItemValueById(recivedData.common_list, "0x07").replace(/[^\d.]/g, '')
-  adaptedData.windspeed = getItemValueById(recivedData.common_list, "0x0B").replace(/[^\d.]/g, '')
-  adaptedData.winddirection = getItemValueById(recivedData.common_list, "0x0A") .replace(/[^\d.]/g, '')
+  adaptedData.airtemp = getItemValueById(recivedData.commonlist, "0x02").replace(/[^\d.]/g, '')
+  adaptedData.airhum = getItemValueById(recivedData.commonlist, "0x07").replace(/[^\d.]/g, '')
+  adaptedData.windspeed = getItemValueById(recivedData.commonlist, "0x0B").replace(/[^\d.]/g, '')
+  adaptedData.winddirection = getItemValueById(recivedData.commonlist, "0x0A") .replace(/[^\d.]/g, '')
   adaptedData.rainamount = getItemValueById(recivedData.rain, "0x0D").replace(/[^\d.]/g, '')
-  adaptedData.solarrad = getItemValueById(recivedData.common_list, "0x15").replace(/[^\d.]/g, '')
+  adaptedData.solarrad = getItemValueById(recivedData.commonlist, "0x15").replace(/[^\d.]/g, '')
   adaptedData.atmopres = recivedData.wh25[0].abs.replace(/[^\d.]/g, '')
 
-  adaptedData.soilhum1 = recivedData.sht1 //treba parsovati
-  adaptedData.soilhum2 = recivedData.sht2 //
-  adaptedData.soiltemp1 = recivedData.sht1 //
-  adaptedData.soiltemp2 = recivedData.sht2 // ova cetri
+  adaptedData.soilhum1 = recivedData.sht1.match(/\d+\.\d+$/)[0]; //treba parsovati
+  adaptedData.soilhum2 = recivedData.sht2.match(/\d+\.\d+$/)[0]; //
+  adaptedData.soiltemp1 = recivedData.sht1.match(/^\d+\.\d+/)[0]; //
+  adaptedData.soiltemp2 = recivedData.sht2.match(/^\d+\.\d+/)[0]; // ova cetri
 
   const parseSignal = recivedData.signal.replace(/AT\+CSQ|\+CSQ:|OK/g, '') ;
-  adaptedData.signal =  parseSignal.replace(/[^\d,]/g, '').replace(/,/g, '.') 
+  adaptedData.signal =  parseSignal.replace(/ATCSQCSQ:|OK/g, '').replace(/,/g, '.') ; //replace(/[^\d,]/g, '').replace(/,/g, '.') 
   adaptedData.signal =  /^\d.+$/.test(adaptedData.signal) ? adaptedData.signal : '0'
 
   adaptedData.battery = recivedData.battery
@@ -220,7 +234,7 @@ router.post('/uploadData', (req, res) => {
   adaptedData.inhum = recivedData.wh25[0].inhumi.replace(/[^\d.]/g, '')
   adaptedData.inatmopres = recivedData.wh25[0].abs.replace(/[^\d.]/g, '')
 
-  adaptedData.imei =  recivedData.imei.replace(/^AT\+GSN\s+| OK$/g, '') 
+  adaptedData.imei =  recivedData.imei.replace(/ATGSN|OK/g, '');//replace(/^AT\+GSN\s+| OK$/g, '') 
   adaptedData.imei =  /^\d+$/.test(adaptedData.imei) ? adaptedData.imei : '0'
 
 
@@ -232,21 +246,8 @@ router.post('/uploadData', (req, res) => {
   })
   // Print the received data
   //console.log('Received POST data:', req.rawBody);
-  const jsonString = req.rawBody
-
-  const modifiedString = decodeURIComponent(jsonString);
-
-
 
  
-
-  console.log(modifiedString)
-  try {
-    const jsonObject = JSON.parse(modifiedString);
-    console.log(jsonObject);
-  } catch (error) {
-    console.error("Error parsing JSON:", error);
-  }
 
   // Send a response (you can customize this as needed)
   res.status(200).send('Data received successfully');
@@ -256,7 +257,7 @@ router.post('/getStationData/:id', checkSession, async (req, res) => {
   const id = req.params.id;
   const user = req.user
   const stations = {
-    "Station1": "1010100001",
+    "Station1": "868715034997472",
     "Station2": "",
     "Station3": "",
     "Station4": "",
