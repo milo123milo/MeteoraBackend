@@ -288,7 +288,7 @@ router.post('/getStationData/:id', checkSession, async (req, res) => {
     "windDirection": dataStation.winddirection  + "° North", //kako strana svijeta?
     "airPressure": dataStation.atmopres + " hPa",
     "rainAmount": dataStation.rainamount + " mm",
-    "irradiation": dataStation.solarrad + " kW/m²", //vjv treba W/m kvadratni
+    "irradiation": dataStation.solarrad * 1000 + " uW/m²", //vjv treba W/m kvadratni
     "SH1": dataStation.soilhum1 + "%",
     "SH2": dataStation.soilhum2 + "%",
     "SHA": ((dataStation.soilhum1 + dataStation.soilhum2)/2.0).toFixed(0) + "%", // Mora zaokruzeno na INT prosjek
