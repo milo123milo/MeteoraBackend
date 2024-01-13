@@ -35,6 +35,21 @@ console.log(`Server is running on port ${PORT}`);
 
 
 app.use(cors());
+function rawBody(req, res, next) {
+  req.setEncoding('utf8');
+  req.rawBody = '';
+  req.on('data', function(chunk) {
+    req.rawBody += chunk;
+  });
+  req.on('end', function(){
+    next();
+  });
+}
+
+    app.use(rawBody);
+  
+
+
 
 
 initializePassport(

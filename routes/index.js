@@ -186,7 +186,7 @@ router.post('/check-session', checkSession, (req, res) => {
 
 router.post('/uploadData', (req, res) => {
 
-  console.log(req.body)
+  
   //const base64Json = req.params.values;
 
 
@@ -231,7 +231,7 @@ router.post('/uploadData', (req, res) => {
     console.log(result)
   })
   // Print the received data
-  console.log('Received POST data:', req.body);
+  console.log('Received POST data:', req.rawBody);
 
   // Send a response (you can customize this as needed)
   res.status(200).send('Data received successfully');
