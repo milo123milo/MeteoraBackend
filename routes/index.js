@@ -225,7 +225,7 @@ router.post('/uploadData', (req, res) => {
   adaptedData.soiltemp2 = recivedData.sht2.match(/^\d+\.\d+/)[0]; // ova cetri
 
   const parseSignal = recivedData.signal.replace(/AT\+CSQ|\+CSQ:|OK/g, '') ;
-  adaptedData.signal =  parseSignal.replace(/ATCSQCSQ:|OK/g, '').replace(/,/g, '.') ; //replace(/[^\d,]/g, '').replace(/,/g, '.') 
+  adaptedData.signal =  parseSignal.match(/\d{2},\d{2}/)?.[0].replace(/,/g, '.') || "0" // ; //replace(/[^\d,]/g, '').replace(/,/g, '.') 
   adaptedData.signal =  /^\d.+$/.test(adaptedData.signal) ? adaptedData.signal : '0'
 
   adaptedData.battery = recivedData.battery
@@ -234,7 +234,7 @@ router.post('/uploadData', (req, res) => {
   adaptedData.inhum = recivedData.wh25[0].inhumi.replace(/[^\d.]/g, '')
   adaptedData.inatmopres = recivedData.wh25[0].abs.replace(/[^\d.]/g, '')
 
-  adaptedData.imei =  recivedData.imei.replace(/ATGSN|OK/g, '');//replace(/^AT\+GSN\s+| OK$/g, '') 
+  adaptedData.imei =  recivedData.imei.match(/\d{15}/)?.[0] || "0";//replace(/^AT\+GSN\s+| OK$/g, '') 
   adaptedData.imei =  /^\d+$/.test(adaptedData.imei) ? adaptedData.imei : '0'
 
 
