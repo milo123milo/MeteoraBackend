@@ -233,6 +233,13 @@ router.post('/uploadData', (req, res) => {
   // Print the received data
   console.log('Received POST data:', req.rawBody);
 
+  try {
+    const jsonObject = JSON.parse(req.rawBody);
+    console.log(jsonObject);
+  } catch (error) {
+    console.error("Error parsing JSON:", error);
+  }
+
   // Send a response (you can customize this as needed)
   res.status(200).send('Data received successfully');
 });
