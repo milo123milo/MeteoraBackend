@@ -184,7 +184,18 @@ router.post('/check-session', checkSession, (req, res) => {
   res.status(200).json({ message: 'Session is valid' });
 });
 
-router.post('/uploadData', (req, res) => {
+function rawBody(req, res, next) {
+  req.setEncoding('utf8');
+  req.rawBody = '';
+  req.on('data', function(chunk) {
+    req.rawBody += chunk;
+  });
+  req.on('end', function(){
+    next();
+  });
+}
+
+router.post('/uploadData', rawBody, (req, res) => {
 
   
   //const base64Json = req.params.values;
@@ -192,7 +203,8 @@ router.post('/uploadData', (req, res) => {
 
 
   //console.log(req.params.values)
-  const jsonString = req.rawBody
+  const jsonString = req.rawBody;
+  
 
   const modifiedString = decodeURIComponent(jsonString);
 
