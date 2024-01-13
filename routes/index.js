@@ -291,10 +291,10 @@ router.post('/getStationData/:id', checkSession, async (req, res) => {
     "irradiation": dataStation.solarrad + " kW/m²", //vjv treba W/m kvadratni
     "SH1": dataStation.soilhum1 + "%",
     "SH2": dataStation.soilhum2 + "%",
-    "SHA": (dataStation.soilhum1 + dataStation.soilhum2)/2.0 + "%", // Mora zaokruzeno na INT prosjek
+    "SHA": ((dataStation.soilhum1 + dataStation.soilhum2)/2.0).toFixed(0) + "%", // Mora zaokruzeno na INT prosjek
     "ST1": dataStation.soiltemp1 + " °C",
     "ST2": dataStation.soiltemp2 + " °C",
-    "STA": (dataStation.soiltemp1 + dataStation.soiltemp2)/2.0 + " °C", // Mora zaokruzeno na INT
+    "STA": ((dataStation.soiltemp1 + dataStation.soiltemp2)/2.0).toFixed(0) + " °C", // Mora zaokruzeno na INT
     "L7DA":  [ {
       "name": "Temperature",
       "data": [22, 21, 24, 20, 19, 21, 23],
