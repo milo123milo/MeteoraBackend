@@ -184,14 +184,14 @@ router.post('/check-session', checkSession, (req, res) => {
   res.status(200).json({ message: 'Session is valid' });
 });
 
-router.post('/uploadData', (req, res) => {
+router.get('/uploadData/data=:values', (req, res) => {
 
   console.log(req.body)
-  //onst base64Json = req.params.values;
+  const base64Json = req.params.values;
 
 
 
- // console.log(req.params.values)
+  console.log(req.params.values)
 
   const recivedData = realSampleData
 
