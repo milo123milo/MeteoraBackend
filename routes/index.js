@@ -129,6 +129,32 @@ function getItemValueById(array, id) {
     return item ? item.val : null;
 }
 
+function windDirection(degrees) {
+  const directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+  const index = Math.round(degrees / 22.5) % 16;
+  return directions[index];
+}
+
+function getLast7Days() {
+  const today = new Date();
+  const result = [];
+
+  // Start from yesterday and go back 7 days
+  for (let i = 1; i <= 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      const dateString = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+      result.push(dateString);
+  }
+
+  return result.reverse();
+}
+function convertToReadableDate(dateString) {
+  const date = new Date(dateString);
+  const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZoneName: 'short' };
+  return date.toLocaleDateString('en-US', options);
+}
+
 /* GET home page. */
 router.get('/', auth.done, function(req, res, next) {
   return res.render('front', { name: req.user.name, role: req.user.role });
@@ -265,12 +291,12 @@ router.post('/uploadData', rawBody, (req, res) => {
   res.status(200).send('Data received successfully');
 });
 
-router.post('/getStationData/:id', checkSession, async (req, res) => {
+router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
   const id = req.params.id;
   const user = req.user
   const stations = {
     "Station1": "868715034997472",
-    "Station2": "",
+    "Station2": "868715034997514",
     "Station3": "",
     "Station4": "",
   }
@@ -281,11 +307,12 @@ router.post('/getStationData/:id', checkSession, async (req, res) => {
   
 
   var data = {
-    "stationID": "Station1",
+    "datetime": convertToReadableDate(dataStation.datetime),
+    "stationID": id,
     "airTemp": dataStation.airtemp + " °C",
     "airHumi": dataStation.airhum + " %",
     "windSpeed": dataStation.windspeed + " km/h",
-    "windDirection": dataStation.winddirection  + "° North", //kako strana svijeta?
+    "windDirection": dataStation.winddirection  + "° " + windDirection(dataStation.winddirection), //kako strana svijeta?
     "airPressure": dataStation.atmopres + " hPa",
     "rainAmount": dataStation.rainamount + " mm",
     "irradiation": dataStation.solarrad*1000 + " kW/m²", //vjv treba W/m kvadratni
@@ -305,19 +332,11 @@ router.post('/getStationData/:id', checkSession, async (req, res) => {
       "data": [12, 11, 13, 10, 14, 11, 10],
     }, 
     {
-      "categories": [
-        "21.11",
-        "22.11",
-        "23.11",
-        "24.11",
-        "25.11",
-        "26.11",
-        "27.11"
-      ]
+      "categories": getLast7Days(),
     },
     ],
     "L24H": {
-      "categories": ["2021-12-01", "2021-12-02", "2021-12-03", "2021-12-04", "2021-12-05", "2021-12-06", "2021-12-07", "2021-12-07", "2021-12-07"],
+      "categories": ["00:00h", "03:00h", "06:00h", "09:00h", "12:00h", "14:00h", "16:00h", "19:00h", "22:00h"],
       "series": [
         {
           "name": "Temperature °C",
@@ -362,7 +381,7 @@ router.post('/getStationData/:id', checkSession, async (req, res) => {
 
   }
 
-  if(id !== "Station1"){
+  if(id === undefined){
     data  =  {
       "stationID": "",
       "airTemp": "",
