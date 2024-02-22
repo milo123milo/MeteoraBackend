@@ -88,6 +88,124 @@ function getLatestDataByImei(imei) {
   });
 }
 
+function getAverageAirTempForLastSevenDays(imei, days = 7, avgparam1 = "airtemp", avgparam2="airhum") {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT DATE(datetime) AS date, AVG(${avgparam1}) AS avg_${avgparam1}, AVG(${avgparam2}) AS avg_${avgparam2}
+      FROM data
+      WHERE imei = ?
+        AND datetime >= DATE_SUB(CURDATE(), INTERVAL ${days} DAY)
+        AND datetime < DATE(CURDATE())
+      GROUP BY DATE(datetime)
+      ORDER BY date DESC;
+    `;
+
+    connection.query(sql, [imei], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        const result = [];
+        const airhumResult = [];
+        const dates = [];
+        const today = new Date();
+        for (let i = 0; i < days; i++) {
+          const date = new Date(today);
+          date.setDate(today.getDate() - i);
+          const dateString = date.toISOString().split('T')[0];
+          
+          const matchingRow = rows.find(row => new Date(row.date).toISOString().split('T')[0] === dateString);
+          if (matchingRow) {
+            result.push(matchingRow.avg_airtemp.toFixed(0));
+            airhumResult.push(matchingRow.avg_airhum.toFixed(0));
+            dates.push(new Date(dateString).toLocaleDateString('en-GB').split('/').join('.').split('.').slice(0, 2).join('.'));
+          } else {
+            result.push(0);
+            airhumResult.push(0);
+            dates.push("00.00");
+          }
+        }
+
+        const arrAirTemp = [result[0], ...result.slice(1, -1).reduce((acc, curr, index) => {
+          if (index < 5) {
+              acc.push(curr);
+          }
+          return acc;
+      }, []), result[result.length - 1]];
+
+      const arrAirHum = [airhumResult[0], ...airhumResult.slice(1, -1).reduce((acc, curr, index) => {
+          if (index < 5) {
+              acc.push(curr);
+          }
+          return acc;
+      }, []), airhumResult[airhumResult.length - 1]];
+
+      const arrDates = [dates[0], ...dates.slice(1, -1).reduce((acc, curr, index) => {
+          if (index < 5) {
+              acc.push(curr);
+          }
+          return acc;
+      }, []), dates[dates.length - 1]];
+
+        const resultObj = {}
+        resultObj[avgparam1] = arrAirTemp
+        resultObj[avgparam2] = arrAirHum
+        resultObj['dates'] = arrDates
+      
+        resolve(resultObj);
+      }
+    });
+  });
+}
+
+function getLatestDataByImeiAndFieldname(imei, fieldname) {
+  return new Promise((resolve, reject) => {
+    
+
+    const sql = `
+    SELECT 
+    AVG(CASE WHEN TIME(datetime) >= '00:00' AND TIME(datetime) < '03:00' THEN ${fieldname} ELSE NULL END) AS avg_00_03,
+    AVG(CASE WHEN TIME(datetime) >= '03:00' AND TIME(datetime) < '06:00' THEN ${fieldname} ELSE NULL END) AS avg_03_06,
+    AVG(CASE WHEN TIME(datetime) >= '06:00' AND TIME(datetime) < '09:00' THEN ${fieldname} ELSE NULL END) AS avg_06_09,
+    AVG(CASE WHEN TIME(datetime) >= '09:00' AND TIME(datetime) < '12:00' THEN ${fieldname} ELSE NULL END) AS avg_09_12,
+    AVG(CASE WHEN TIME(datetime) >= '12:00' AND TIME(datetime) < '15:00' THEN ${fieldname} ELSE NULL END) AS avg_12_15,
+    AVG(CASE WHEN TIME(datetime) >= '15:00' AND TIME(datetime) < '18:00' THEN ${fieldname} ELSE NULL END) AS avg_15_18,
+    AVG(CASE WHEN TIME(datetime) >= '18:00' AND TIME(datetime) < '22:00' THEN ${fieldname} ELSE NULL END) AS avg_18_22,
+    AVG(CASE WHEN TIME(datetime) >= '22:00' AND TIME(datetime) < '22:59' THEN ${fieldname} ELSE NULL END) AS avg_22_00
+    FROM 
+        data
+    WHERE 
+        DATE(datetime) = CURDATE() - INTERVAL 1 DAY
+        AND imei = ?;
+    `;
+
+    connection.query(sql, [imei], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        const rowData = rows.map(row => {
+          const roundedRow = [];
+          roundedRow.push(parseFloat(row.avg_00_03).toFixed(0));
+          roundedRow.push(parseFloat(row.avg_03_06).toFixed(0));
+          roundedRow.push(parseFloat(row.avg_06_09).toFixed(0));
+          roundedRow.push(parseFloat(row.avg_09_12).toFixed(0));
+          roundedRow.push(parseFloat(row.avg_12_15).toFixed(0));
+          roundedRow.push(parseFloat(row.avg_15_18).toFixed(0));
+          roundedRow.push(parseFloat(row.avg_18_22).toFixed(0));
+          roundedRow.push(parseFloat(row.avg_22_00).toFixed(0));
+          return roundedRow;
+      });
+
+        
+        resolve(rowData);
+      }
+    });
+  });
+}
+
+
+
+
+
 
 module.exports = {
   getUserById,
@@ -97,5 +215,7 @@ module.exports = {
   createUser,
   editUser,
   importData,
-  getLatestDataByImei
+  getLatestDataByImei,
+  getAverageAirTempForLastSevenDays,
+  getLatestDataByImeiAndFieldname
 };

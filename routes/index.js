@@ -154,6 +154,24 @@ function convertToReadableDate(dateString) {
   const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZoneName: 'short' };
   return date.toLocaleDateString('en-US', options);
 }
+function calculateAverage(row) {
+  const sum = row.reduce((acc, value) => acc + parseFloat(value), 0);
+  return sum / row.length;
+}
+function isDataOlderThanThreeHours(data) {
+  const currentTime = new Date();
+  
+  const dataTime = new Date(data.datetime);
+
+  const timeDifference = currentTime - dataTime;
+  const threeHoursInMilliseconds = 3 * 60 * 60 * 1000;
+
+  if (timeDifference > threeHoursInMilliseconds) {
+      return true;
+  } else {
+      return false;
+  }
+}
 
 /* GET home page. */
 router.get('/', auth.done, function(req, res, next) {
@@ -293,19 +311,67 @@ router.post('/uploadData', rawBody, (req, res) => {
 
 router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
   const id = req.params.id;
-  const user = req.user
+  const user = req.user;
+  const days30 = req.body.days30
+  var daysavg = 7
+
+  const param7days = req.body.param7days !== undefined && req.body.param7days.trim() !== "" ? req.body.param7days : "airtemp";
+
+  const paramNamesList = [{"airtemp": "Temperature °C"}, {"airhum": "Humidity %"}, 
+                     {"windspeed": "Wind km/h"},  {"rainamount": "Rain mm"}]
+
+  const paramList = ["airtemp", "airhum", "windspeed", "rainamount"];   
+
+  const isValidParam = paramList.includes(param7days);
+  if (!isValidParam) {
+    console.log(`${param7days} is not a valid parameter.`);
+    // Set param7days to "airhum" if it's not a valid parameter
+    param7days = "airhum";
+  }
+
+  const paramName = paramNamesList.find(param => param[param7days])
+
+
+  console.log(paramName[param7days])
+  
   const stations = {
     "Station1": "868715034997472",
     "Station2": "868715034997514",
-    "Station3": "",
-    "Station4": "",
+    "Station3": "868715034924559",
+    "Station4": "868715034995740",
   }
 
+  console.log(days30)
+  if(days30 == 'true'){
+    daysavg = 30;
+    console.log("Oujes")
+  }
 
   
   const dataStation = await pool.getLatestDataByImei(stations[id])
-  
 
+  const avg7days = await pool.getAverageAirTempForLastSevenDays(stations[id], daysavg)
+
+  console.log(avg7days)
+
+  const avg24h = await pool.getLatestDataByImeiAndFieldname(stations[id], param7days)
+
+
+  const humRow = await pool.getLatestDataByImeiAndFieldname(stations[id], "airhum")
+  const hum24h = calculateAverage(humRow[0]).toFixed(0)
+
+  const windRow = await pool.getLatestDataByImeiAndFieldname(stations[id], "windspeed")
+  const wind24h = calculateAverage(windRow[0]).toFixed(2)
+
+  const atmoRow = await pool.getLatestDataByImeiAndFieldname(stations[id], "atmopres")
+  const atmo24h = calculateAverage(atmoRow[0]).toFixed(0)
+
+  const rainRow = await pool.getLatestDataByImeiAndFieldname(stations[id], "rainamount")
+  const rain24h = calculateAverage(rainRow[0]).toFixed(2)
+
+ 
+  
+  
   var data = {
     "datetime": convertToReadableDate(dataStation.datetime),
     "stationID": id,
@@ -324,34 +390,34 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
     "STA": ((dataStation.soiltemp1 + dataStation.soiltemp2)/2.0).toFixed(0) + " °C", // Mora zaokruzeno na INT
     "L7DA":  [ {
       "name": "Temperature",
-      "data": [22, 21, 24, 20, 19, 21, 23],
+      "data": avg7days.airtemp,
 
     },
     {
       "name": "Humdity",
-      "data": [12, 11, 13, 10, 14, 11, 10],
+      "data": avg7days.airhum,
     }, 
     {
-      "categories": getLast7Days(),
+      "categories": avg7days.dates,
     },
     ],
     "L24H": {
       "categories": ["00:00h", "03:00h", "06:00h", "09:00h", "12:00h", "14:00h", "16:00h", "19:00h", "22:00h"],
       "series": [
         {
-          "name": "Temperature °C",
-          "data": [30, 25, 40, 10, 23, 17, 18, 20, 22],
+          "name": paramName[param7days],
+          "data": avg24h[0],
         }
       ],
       "OtherAverage": {
-        "Humidity": "30 %", // Replace with the actual average value
-        "Wind": "3 km/h", // Replace with the actual average value
-        "Pressure": "1080 hPa", // Replace with the actual average value
-        "Rain": "12.01 mm" // Replace with the actual average value
+        "Humidity": hum24h + " %", // Replace with the actual average value
+        "Wind": wind24h + " km/h", // Replace with the actual average value
+        "Pressure": atmo24h + " hPa", // Replace with the actual average value
+        "Rain": rain24h + " mm" // Replace with the actual average value
       }
     },
     "systemData": {
-      "Online": true,
+      "Online": !isDataOlderThanThreeHours(dataStation),
       "Signal": {
         "status": "-",
         "value": ((dataStation.signalval * 100)/35).toFixed(1) + " %"
@@ -380,6 +446,11 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
 
 
   }
+
+
+
+  
+  
 
   if(id === undefined){
     data  =  {
