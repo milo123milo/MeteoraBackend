@@ -4,6 +4,9 @@ const webpush = require("web-push");
 var router = express.Router();
 const passport = require('passport');
 var pool = require('../database/queries')
+const cors = require('cors');
+
+router.use(cors());
 
 const publicVapidKey =
   "BAABol4lIL0tpSskELBxy8pFcHw-uNFXoD4WfTlwvPuv4Od-FIoKQUl2kDnESPH4flCcGUfCIzZVmNvadOfMNJE";
