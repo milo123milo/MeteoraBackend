@@ -21,7 +21,7 @@ var app = express();
 
 initDB.initDatabase();
 
-const cors = require('cors') 
+
 
 const corsOptions = { 
   // origin:'https://abc.onrender.com',
