@@ -582,7 +582,6 @@ router.post("/subscribe",/* checkSession ,*/ async (req, res) => {
   console.log(subscription)
 
   // Send 201 - resource created
-  res.status(201).json({});
 
   // Create payload
   const payload = JSON.stringify({ title: "Meteora", body: "Notifications Activated" });
@@ -591,6 +590,9 @@ router.post("/subscribe",/* checkSession ,*/ async (req, res) => {
   webpush
     .sendNotification(subscription, payload)
     .catch(err => console.log(err));
+
+    res.status(200).json({ message: 'Subs is valid' });
+
 });
 
 router.post("/unsubscribe", /* checkSession ,*/ async (req, res) => {
