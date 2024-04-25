@@ -20,7 +20,15 @@ var initDB = require('./database/init')
 var app = express();
 
 initDB.initDatabase();
-app.use(cors());
+
+const corsOptions = {
+  origin: 'http://localhost:3006',
+  allowedHeaders: ['Content-Type'] // Allow only Content-Type header
+};
+
+app.use(cors(corsOptions));
+
+
 const initializePassport = require('./passport-config');
 const { route } = require('./routes/index');
 
@@ -28,6 +36,7 @@ var query = require('./database/queries');
 const router = require('./routes/index');
 
 var routers = express.Router();
+
 
 const PORT = process.env.PORT || 3000; // Use the environment variable or port 3000 by default
 
