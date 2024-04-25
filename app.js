@@ -23,13 +23,13 @@ initDB.initDatabase();
 
 
 
-const corsOptions = { 
-  // origin:'https://abc.onrender.com',
-  AccessControlAllowOrigin: '*',  
-  origin: '*',  
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE' 
-}
-app.use(cors(corsOptions))
+const corsOptions = {
+  origin: 'http://localhost:3006',
+  methods: ['GET', 'POST'], // Allow only GET and POST requests
+  allowedHeaders: ['Content-Type'], // Allow only Content-Type header
+};
+
+app.use(cors(corsOptions));
 
 
 
