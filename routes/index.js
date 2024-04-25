@@ -1,8 +1,49 @@
 var express = require('express');
 var auth = require('./rules/authCheck');
+const webpush = require("web-push");
 var router = express.Router();
 const passport = require('passport');
 var pool = require('../database/queries')
+
+const publicVapidKey =
+  "BAABol4lIL0tpSskELBxy8pFcHw-uNFXoD4WfTlwvPuv4Od-FIoKQUl2kDnESPH4flCcGUfCIzZVmNvadOfMNJE";
+const privateVapidKey = "vnCicF3cEqJWs7Eeq85mY_OVvsaVe5NeyAu5jUTu-HI";
+
+webpush.setVapidDetails(
+  "mailto:test@test.com",
+  publicVapidKey,
+  privateVapidKey
+);
+
+// Subscribe Route
+let subscriptions = [];
+
+ function sendNotf(id, subs) {
+  try {
+    // Create payload
+      // Create payload
+    const stationID = id
+    const bodyString = "New Data From " + stationID
+    const payload = JSON.stringify({ title: "Meteora Station", body: bodyString });
+
+    // Loop through subscriptions and send notifications
+    subs.forEach(async (subscription) => {
+      try {
+        await webpush.sendNotification(subscription, payload);
+      } catch (error) {
+        console.error("Error sending notification:", error);
+        // Handle the error as needed, for example, logging it or notifying someone.
+      }
+    });
+
+    //res.status(200).json({ success: true, message: 'Notifications sent successfully' });
+  } catch (error) {
+    console.error(error);
+    //res.status(500).json({ success: false, error: 'Server Error' });
+  }
+}
+
+
 
 const sampleData = {
   airtemp: 25.5,
@@ -329,6 +370,27 @@ router.post('/uploadData', rawBody, (req, res) => {
  
 
   // Send a response (you can customize this as needed)
+  const stations = {
+    "Station1": "868715034997472",
+    "Station2": "868715034997514",
+    "Station3": "868715034924559",
+    "Station4": "868715034995740",
+  }
+  function getStationName(number) {
+    for (const station in stations) {
+      if (stations[station] === number) {
+        return station;
+      }
+    }
+    return "Station not found";
+  }
+  var name = getLocationName(getStationName(adaptedData.imei))
+  
+  pool.getSubscribers((subscribers) => {
+    sendNotf(getStationName(adaptedData.imei) + ": " + name, subscribers)
+  });
+  
+  
   res.status(200).send('Data received successfully');
 });
 
@@ -506,6 +568,33 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
   }
   
   res.json(data);
+});
+
+router.post("/subscribe",/* checkSession ,*/ async (req, res) => {
+  // Get pushSubscription object
+  const subscription = req.body;
+
+  subscriptions.push(subscription);
+  pool.createSubscriber(subscription.endpoint, subscription.expirationTime, subscription.keys.p256dh, subscription.keys.auth)
+  console.log(subscription)
+
+  // Send 201 - resource created
+  res.status(201).json({});
+
+  // Create payload
+  const payload = JSON.stringify({ title: "Meteora", body: "Notifications Activated" });
+
+  // Pass object into sendNotification
+  webpush
+    .sendNotification(subscription, payload)
+    .catch(err => console.log(err));
+});
+
+router.post("/unsubscribe", /* checkSession ,*/ async (req, res) => {
+  const subscription = req.body;
+  pool.deleteSubscriber(subscription.keys.auth)
+
+  res.status(200).json({ success: true, message: 'Subs deleted.' });
 });
 
 

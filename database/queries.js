@@ -202,6 +202,36 @@ function getLatestDataByImeiAndFieldname(imei, fieldname) {
   });
 }
 
+function createSubscriber(endpoint, expirationTime, p256dh_key, auth_key) {
+  const sql = 'INSERT INTO subscribers (endpoint, expirationTime, p256dh_key, auth_key) VALUES (?, ?, ?, ?)';
+  connection.query(sql, [endpoint, expirationTime, p256dh_key, auth_key], (err, rows) => {
+    if (err) throw err;
+  });
+}
+function getSubscribers(callback) {
+  const sql = 'SELECT * FROM subscribers ';
+  connection.query(sql, (err, rows) => {
+    if (err) throw err;
+    const remappedArray = rows.map(item => ({
+      endpoint: item.endpoint,
+      expirationTime: item.expirationTime,
+      keys: {
+        p256dh: item.p256dh_key,
+        auth: item.auth_key
+      }
+    }));
+    callback(remappedArray);
+  });
+}
+function deleteSubscriber(auth_key) {
+  const sql = 'DELETE FROM subscribers WHERE auth_key = ?';
+  connection.query(sql, [auth_key], (err, rows) => {
+    if (err) throw err;
+  });
+}
+
+
+
 
 
 
@@ -217,5 +247,8 @@ module.exports = {
   importData,
   getLatestDataByImei,
   getAverageAirTempForLastSevenDays,
-  getLatestDataByImeiAndFieldname
+  getLatestDataByImeiAndFieldname,
+  createSubscriber,
+  getSubscribers,
+  deleteSubscriber
 };

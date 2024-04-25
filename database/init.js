@@ -75,13 +75,28 @@ function initDatabase(){
         
         `;
 
+    const createSubscribersTable = `
+    CREATE TABLE IF NOT EXISTS subscribers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        endpoint TEXT,
+        expirationTime TIMESTAMP NULL,
+        p256dh_key TEXT,
+        auth_key TEXT
+    );
+    `
     const createIndexImei = 'CREATE INDEX IF NOT EXISTS idx_imei ON data (imei);';
     const createIndexDatetime = 'CREATE INDEX IF NOT EXISTS idx_datetime ON data (datetime);';
+
+
         
 
     connection.query(createDataTable, (err) => {
         if (err) throw err;
         console.log('Data table checked/created');
+    });
+    connection.query(createSubscribersTable, (err) => {
+        if (err) throw err;
+        console.log('Subcribers table checked/created');
     });
     connection.query(createIndexImei, (err) => {
         if (err) throw err;
@@ -91,9 +106,9 @@ function initDatabase(){
     connection.query(createIndexDatetime, (err) => {
         if (err) throw err;
         console.log('Index on datetime created/checked');
-
-        // ... (rest of the code)
     });
+
+
     });
     });
 }
