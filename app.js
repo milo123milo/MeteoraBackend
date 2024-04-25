@@ -21,7 +21,15 @@ var app = express();
 
 initDB.initDatabase();
 
-app.use(cors({ credentials: true }))
+const cors = require('cors') 
+
+const corsOptions = { 
+  // origin:'https://abc.onrender.com',
+  AccessControlAllowOrigin: '*',  
+  origin: '*',  
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE' 
+}
+app.use(cors(corsOptions))
 
 
 
