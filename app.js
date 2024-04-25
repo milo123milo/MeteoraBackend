@@ -23,13 +23,10 @@ initDB.initDatabase();
 
 
 
-const corsOptions = {
-  origin: 'http://localhost:3006',
-  methods: ['GET', 'POST'], // Allow only GET and POST requests
-  allowedHeaders: ['Content-Type', 'content-type'] // Allow only Content-Type header
-};
 
-app.use(cors(corsOptions));
+
+
+app.use(cors());
 
 
 
