@@ -172,6 +172,21 @@ function isDataOlderThanThreeHours(data) {
       return false;
   }
 }
+function getLocationName(id) {
+  switch (id) {
+      case 'Station1':
+          return 'Dobra Voda';
+      case 'Station2':
+          return 'Bartula';
+      case 'Station3':
+          return 'Barska Uljara';
+      case 'Station4':
+          return 'Mandarici';
+      default:
+          return 'Unknown Location';
+  }
+}
+
 
 /* GET home page. */
 router.get('/', auth.done, function(req, res, next) {
@@ -315,12 +330,12 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
   const days30 = req.body.days30
   var daysavg = 7
 
-  const param7days = req.body.param7days !== undefined && req.body.param7days.trim() !== "" ? req.body.param7days : "airtemp";
+  var param7days = req.body.param7days !== undefined && req.body.param7days.trim() !== "" ? req.body.param7days : "airtemp";
 
   const paramNamesList = [{"airtemp": "Temperature °C"}, {"airhum": "Humidity %"}, 
-                     {"windspeed": "Wind km/h"},  {"rainamount": "Rain mm"}]
+                     {"windspeed": "Wind km/h"},  {"rainamount": "Rain mm"}, {"solarirradiation": "Solar irradiation mW/m²"}]
 
-  const paramList = ["airtemp", "airhum", "windspeed", "rainamount"];   
+  const paramList = ["th", "sht", "ws", "ra", "sr"];   
 
   const isValidParam = paramList.includes(param7days);
   if (!isValidParam) {
@@ -333,7 +348,7 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
 
 
   console.log(paramName[param7days])
-  
+
   const stations = {
     "Station1": "868715034997472",
     "Station2": "868715034997514",
@@ -373,6 +388,7 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
   
   
   var data = {
+    "location": getLocationName(id),
     "datetime": convertToReadableDate(dataStation.datetime),
     "stationID": id,
     "airTemp": dataStation.airtemp + " °C",
@@ -381,7 +397,7 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
     "windDirection": dataStation.winddirection  + "° " + windDirection(dataStation.winddirection), //kako strana svijeta?
     "airPressure": dataStation.atmopres + " hPa",
     "rainAmount": dataStation.rainamount + " mm",
-    "irradiation": dataStation.solarrad*1000 + " kW/m²", //vjv treba W/m kvadratni
+    "irradiation": dataStation.solarrad + " kW/m²", //vjv treba W/m kvadratni
     "SH1": dataStation.soilhum1 + "%",
     "SH2": dataStation.soilhum2 + "%",
     "SHA": ((dataStation.soilhum1 + dataStation.soilhum2)/2.0).toFixed(0) + "%", // Mora zaokruzeno na INT prosjek
