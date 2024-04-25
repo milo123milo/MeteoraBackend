@@ -27,6 +27,8 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 
 
 const initializePassport = require('./passport-config');
