@@ -186,6 +186,14 @@ function getLocationName(id) {
           return 'Unknown Location';
   }
 }
+function windCorrection(id){
+  if(id == 'Station4'){
+    return 90
+  }
+  else {
+    return 0
+  }
+}
 
 
 /* GET home page. */
@@ -394,7 +402,7 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
     "airTemp": dataStation.airtemp + " °C",
     "airHumi": dataStation.airhum + " %",
     "windSpeed": dataStation.windspeed + " km/h",
-    "windDirection": dataStation.winddirection  + "° " + windDirection(dataStation.winddirection), //kako strana svijeta?
+    "windDirection": dataStation.winddirection + windCorrection(id)  + "° " + windDirection(dataStation.winddirection + windCorrection(id)), //kako strana svijeta?
     "airPressure": dataStation.atmopres + " hPa",
     "rainAmount": dataStation.rainamount + " mm",
     "irradiation": dataStation.solarrad.toFixed(0) + " kW/m²", //vjv treba W/m kvadratni
