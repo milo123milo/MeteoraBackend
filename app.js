@@ -20,7 +20,7 @@ var initDB = require('./database/init')
 var app = express();
 
 initDB.initDatabase();
-
+app.use(cors());
 const initializePassport = require('./passport-config');
 const { route } = require('./routes/index');
 
@@ -34,7 +34,7 @@ const PORT = process.env.PORT || 3000; // Use the environment variable or port 3
 console.log(`Server is running on port ${PORT}`);
 
 
-app.use(cors());
+
 
 
  
