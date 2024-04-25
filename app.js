@@ -21,13 +21,8 @@ var app = express();
 
 initDB.initDatabase();
 
-const corsOptions = {
-  origin: 'http://localhost:3006',
-  allowedHeaders: ['Content-Type'] // Allow only Content-Type header
-};
+app.use(cors({ credentials: true }))
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
 
 
