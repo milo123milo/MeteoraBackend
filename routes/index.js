@@ -424,8 +424,8 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
 
   const stations = {
     "Station1": "868715034997472",
-    //"Station2": "868715034997514",
-    "Station2": "868715034995740", //Kopiranje Bartule
+    "Station2": "868715034997514",
+    //"Station2": "868715034995740", //Kopiranje Bartule
     "Station3": "868715034924559",
     "Station4": "868715034995740",
   }
