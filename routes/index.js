@@ -6,7 +6,6 @@ const passport = require('passport');
 var pool = require('../database/queries')
 const cors = require('cors');
 
-router.use(cors());
 
 const publicVapidKey =
   "BAABol4lIL0tpSskELBxy8pFcHw-uNFXoD4WfTlwvPuv4Od-FIoKQUl2kDnESPH4flCcGUfCIzZVmNvadOfMNJE";
@@ -375,7 +374,8 @@ router.post('/uploadData', rawBody, (req, res) => {
   // Send a response (you can customize this as needed)
   const stations = {
     "Station1": "868715034997472",
-    "Station2": "868715034997514",
+    //"Station2": "868715034997514",
+    "Station2": "868715034995740",
     "Station3": "868715034924559",
     "Station4": "868715034995740",
   }
@@ -591,7 +591,7 @@ router.post("/subscribe",/* checkSession ,*/ async (req, res) => {
     .sendNotification(subscription, payload)
     .catch(err => console.log(err));
 
-    res.status(200).json({ message: 'Subs is valid' });
+  res.status(200).json({ message: 'Subs is valid' });
 
 });
 
