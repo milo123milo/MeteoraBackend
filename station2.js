@@ -1,5 +1,6 @@
-const fetch = require('node-fetch');
-var request = require('request');
+import('node-fetch');
+const request = require('request');
+
 function offsetValue(value, round=0, sht=false) {
     // Remove anything that is not a number or a number with a decimal point or comma
     const cleanedValue = value.toString().replace(/[^0-9.,]/g, '');
