@@ -237,6 +237,28 @@ function windCorrection(id){
     return 0
   }
 }
+function map24(input) {
+  switch(input) {
+      case 't24':
+          return 'airtemp';
+      case 'h24':
+          return 'airhum';
+      case 'w24':
+          return 'windspeed';
+      case 'p24':
+          return 'atmopres';
+      case 'r24':
+          return 'rainamount';
+      case 's24':
+          return 'solarrad';
+      default:
+          return 'airtemp';
+  }
+}
+
+
+
+
 
 
 /* GET home page. */
@@ -401,12 +423,15 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
   const id = req.params.id;
   const user = req.user;
   const days30 = req.body.days30
+  const param24hours = req.body.param24hours
+
+  console.log("P24: " + param24hours)
   var daysavg = 7
 
   var param7days = req.body.param7days !== undefined && req.body.param7days.trim() !== "" ? req.body.param7days : "airtemp";
 
-  const paramNamesList = [{"airtemp": "Temperature °C"}, {"airhum": "Humidity %"}, 
-                     {"windspeed": "Wind km/h"},  {"rainamount": "Rain mm"}, {"solarirradiation": "Solar irradiation mW/m²"}]
+  const paramNamesList = [{"airtemp": "Temperature °C"}, {"airhum": "Humidity %"}, {"atmopres": "Pressure hPa"},
+                     {"windspeed": "Wind km/h"},  {"rainamount": "Rain mm"}, {"solarrad": "Irradiation mW/m²"}]
 
   const paramList = ["th", "sht", "ws", "ra", "sr"];   
 
@@ -443,7 +468,7 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
 
   console.log(avg7days)
 
-  const avg24h = await pool.getLatestDataByImeiAndFieldname(stations[id], param7days)
+  const avg24h = await pool.getLatestDataByImeiAndFieldname(stations[id], map24(param24hours))
 
 
   const humRow = await pool.getLatestDataByImeiAndFieldname(stations[id], "airhum")
@@ -495,7 +520,7 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
       "categories": ["00:00h", "03:00h", "06:00h", "09:00h", "12:00h", "14:00h", "16:00h", "19:00h", "22:00h"],
       "series": [
         {
-          "name": paramName[param7days],
+          "name": paramNamesList.find(param => param[map24(param24hours)]),
           "data": avg24h[0],
         }
       ],

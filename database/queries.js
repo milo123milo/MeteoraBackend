@@ -158,6 +158,7 @@ function getAverageAirTempForLastSevenDays(imei, days = 7, avgparam1 = "airtemp"
 }
 
 function getLatestDataByImeiAndFieldname(imei, fieldname) {
+  console.log("FIELDNAME: " + fieldname)
   return new Promise((resolve, reject) => {
     
 
@@ -167,10 +168,11 @@ function getLatestDataByImeiAndFieldname(imei, fieldname) {
     AVG(CASE WHEN TIME(datetime) >= '03:00' AND TIME(datetime) < '06:00' THEN ${fieldname} ELSE NULL END) AS avg_03_06,
     AVG(CASE WHEN TIME(datetime) >= '06:00' AND TIME(datetime) < '09:00' THEN ${fieldname} ELSE NULL END) AS avg_06_09,
     AVG(CASE WHEN TIME(datetime) >= '09:00' AND TIME(datetime) < '12:00' THEN ${fieldname} ELSE NULL END) AS avg_09_12,
-    AVG(CASE WHEN TIME(datetime) >= '12:00' AND TIME(datetime) < '15:00' THEN ${fieldname} ELSE NULL END) AS avg_12_15,
-    AVG(CASE WHEN TIME(datetime) >= '15:00' AND TIME(datetime) < '18:00' THEN ${fieldname} ELSE NULL END) AS avg_15_18,
+    AVG(CASE WHEN TIME(datetime) >= '12:00' AND TIME(datetime) < '14:00' THEN ${fieldname} ELSE NULL END) AS avg_12_14,
+    AVG(CASE WHEN TIME(datetime) >= '14:00' AND TIME(datetime) < '16:00' THEN ${fieldname} ELSE NULL END) AS avg_14_16,
+    AVG(CASE WHEN TIME(datetime) >= '16:00' AND TIME(datetime) < '18:00' THEN ${fieldname} ELSE NULL END) AS avg_16_18,
     AVG(CASE WHEN TIME(datetime) >= '18:00' AND TIME(datetime) < '22:00' THEN ${fieldname} ELSE NULL END) AS avg_18_22,
-    AVG(CASE WHEN TIME(datetime) >= '22:00' AND TIME(datetime) < '22:59' THEN ${fieldname} ELSE NULL END) AS avg_22_00
+    AVG(CASE WHEN TIME(datetime) >= '22:00' AND TIME(datetime) < '23:59' THEN ${fieldname} ELSE NULL END) AS avg_22_00
     FROM 
         data
     WHERE 
@@ -188,8 +190,9 @@ function getLatestDataByImeiAndFieldname(imei, fieldname) {
           roundedRow.push(parseFloat(row.avg_03_06).toFixed(0));
           roundedRow.push(parseFloat(row.avg_06_09).toFixed(0));
           roundedRow.push(parseFloat(row.avg_09_12).toFixed(0));
-          roundedRow.push(parseFloat(row.avg_12_15).toFixed(0));
-          roundedRow.push(parseFloat(row.avg_15_18).toFixed(0));
+          roundedRow.push(parseFloat(row.avg_12_14).toFixed(0));
+          roundedRow.push(parseFloat(row.avg_14_16).toFixed(0));
+          roundedRow.push(parseFloat(row.avg_16_18).toFixed(0));
           roundedRow.push(parseFloat(row.avg_18_22).toFixed(0));
           roundedRow.push(parseFloat(row.avg_22_00).toFixed(0));
           return roundedRow;
