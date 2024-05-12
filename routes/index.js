@@ -7,6 +7,7 @@ var pool = require('../database/queries')
 const cors = require('cors');
 
 
+
 const publicVapidKey =
   "BAABol4lIL0tpSskELBxy8pFcHw-uNFXoD4WfTlwvPuv4Od-FIoKQUl2kDnESPH4flCcGUfCIzZVmNvadOfMNJE";
 const privateVapidKey = "vnCicF3cEqJWs7Eeq85mY_OVvsaVe5NeyAu5jUTu-HI";
@@ -273,6 +274,8 @@ router.get('/settings', auth.done, function(req, res, next) {
 });
 
 router.get('/login', auth.not, function(req, res, next) {
+  
+console.log("IP: "+ req.clientIp)
  return res.render('login', { title: 'Login' });
 });
 
@@ -281,6 +284,7 @@ router.get('/login', auth.not, function(req, res, next) {
 router.post('/login', auth.not, passport.authenticate('local', {
   failureFlash: true,
 }), (req, res, next) => {
+  
   const sessionID = req.sessionID;
 
   const username = req.user; // Access the username
@@ -433,6 +437,10 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
   const paramNamesList = [{"airtemp": "Temperature °C"}, {"airhum": "Humidity %"}, {"atmopres": "Pressure hPa"},
                      {"windspeed": "Wind km/h"},  {"rainamount": "Rain mm"}, {"solarrad": "Irradiation mW/m²"}]
 
+  function getParameterValue(paramName) {
+        const foundParam = paramNamesList.find(param => Object.keys(param)[0] === paramName);
+        return foundParam ? foundParam[paramName] : null;
+  }
   const paramList = ["th", "sht", "ws", "ra", "sr"];   
 
   const isValidParam = paramList.includes(param7days);
@@ -520,7 +528,7 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
       "categories": ["00:00h", "03:00h", "06:00h", "09:00h", "12:00h", "14:00h", "16:00h", "19:00h", "22:00h"],
       "series": [
         {
-          "name": paramNamesList.find(param => param[map24(param24hours)]),
+          "name": getParameterValue(map24(param24hours)),//paramNamesList.find(param => param[map24(param24hours)]),
           "data": avg24h[0],
         }
       ],

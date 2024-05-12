@@ -4,6 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const cors = require('cors');
+const requestIp = require('request-ip');
 
 
 
@@ -74,6 +75,8 @@ app.use(passport.session())
 app.use(cors({
   origin: true
 }))
+app.use(requestIp.mw())
+
 
 
 
