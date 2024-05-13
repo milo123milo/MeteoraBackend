@@ -94,8 +94,8 @@ function getAverageAirTempForLastSevenDays(imei, days = 7, avgparam1 = "airtemp"
       SELECT DATE(datetime) AS date, AVG(${avgparam1}) AS avg_${avgparam1}, AVG(${avgparam2}) AS avg_${avgparam2}
       FROM data
       WHERE imei = ?
-        AND datetime >= DATE_SUB(CURDATE(), INTERVAL ${days} DAY)
-        AND datetime < DATE(CURDATE())
+        AND DATE(datetime) BETWEEN DATE_SUB(CURDATE(), INTERVAL ${days} DAY) AND CURDATE()
+
       GROUP BY DATE(datetime)
       ORDER BY date DESC;
     `;
@@ -105,10 +105,11 @@ function getAverageAirTempForLastSevenDays(imei, days = 7, avgparam1 = "airtemp"
         reject(err);
       } else {
         const result = [];
+        console.log(rows)
         const airhumResult = [];
         const dates = [];
         const today = new Date();
-        for (let i = 0; i < days; i++) {
+        for (let i = 1; i <= days ; i++) {
           const date = new Date(today);
           date.setDate(today.getDate() - i);
           const dateString = date.toISOString().split('T')[0];
@@ -126,21 +127,21 @@ function getAverageAirTempForLastSevenDays(imei, days = 7, avgparam1 = "airtemp"
         }
 
         const arrAirTemp = [result[0], ...result.slice(1, -1).reduce((acc, curr, index) => {
-          if (index < 5) {
+          if (index < days) {
               acc.push(curr);
           }
           return acc;
-      }, []), result[result.length - 1]];
+      }, []), result[result.length-1]];
 
       const arrAirHum = [airhumResult[0], ...airhumResult.slice(1, -1).reduce((acc, curr, index) => {
-          if (index < 5) {
+          if (index < days) {
               acc.push(curr);
           }
           return acc;
       }, []), airhumResult[airhumResult.length - 1]];
 
       const arrDates = [dates[0], ...dates.slice(1, -1).reduce((acc, curr, index) => {
-          if (index < 5) {
+          if (index < days) {
               acc.push(curr);
           }
           return acc;
@@ -150,6 +151,8 @@ function getAverageAirTempForLastSevenDays(imei, days = 7, avgparam1 = "airtemp"
         resultObj[avgparam1] = arrAirTemp
         resultObj[avgparam2] = arrAirHum
         resultObj['dates'] = arrDates
+
+        console.log(resultObj)
       
         resolve(resultObj);
       }
