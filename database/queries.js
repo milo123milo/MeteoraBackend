@@ -91,7 +91,7 @@ function getLatestDataByImei(imei) {
 function getAverageAirTempForLastSevenDays(imei, days = 7, avgparam1 = "airtemp", avgparam2="airhum") {
   return new Promise((resolve, reject) => {
     const sql = `
-      SELECT DATE(datetime) AS date, AVG(${avgparam1}) AS avg_${avgparam1}, AVG(${avgparam2}) AS avg_${avgparam2}
+      SELECT DATE(datetime) AS date, AVG(${avgparam1}) AS avg_airtemp, AVG(${avgparam2}) AS avg_airhum
       FROM data
       WHERE imei = ?
         AND DATE(datetime) BETWEEN DATE_SUB(CURDATE(), INTERVAL ${days} DAY) AND CURDATE()
@@ -99,7 +99,7 @@ function getAverageAirTempForLastSevenDays(imei, days = 7, avgparam1 = "airtemp"
       GROUP BY DATE(datetime)
       ORDER BY date DESC;
     `;
-
+    console.log(sql)
     connection.query(sql, [imei], (err, rows) => {
       if (err) {
         reject(err);
@@ -148,8 +148,8 @@ function getAverageAirTempForLastSevenDays(imei, days = 7, avgparam1 = "airtemp"
       }, []), dates[dates.length - 1]];
 
         const resultObj = {}
-        resultObj[avgparam1] = arrAirTemp
-        resultObj[avgparam2] = arrAirHum
+        resultObj['airtemp'] = arrAirTemp
+        resultObj['airhum'] = arrAirHum
         resultObj['dates'] = arrDates
 
         console.log(resultObj)

@@ -428,6 +428,7 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
   const user = req.user;
   const days30 = req.body.days30
   const param24hours = req.body.param24hours
+  const param30days = req.body.param30days
 
   console.log("P24: " + param24hours)
   var daysavg = 7
@@ -437,12 +438,61 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
   const paramNamesList = [{"airtemp": "Temperature °C"}, {"airhum": "Humidity %"}, {"atmopres": "Pressure hPa"},
                      {"windspeed": "Wind km/h"},  {"rainamount": "Rain mm"}, {"solarrad": "Irradiation mW/m²"}]
 
+  const paramList = ["th", "sht", "ws", "ra", "sr"];  
   function getParameterValue(paramName) {
         const foundParam = paramNamesList.find(param => Object.keys(param)[0] === paramName);
         return foundParam ? foundParam[paramName] : null;
   }
-  const paramList = ["th", "sht", "ws", "ra", "sr"];   
-
+  function map30days(paramName){
+    switch(paramName) {
+      case 'th':
+        return ['airtemp', 'airhum', ]
+      case 'sht1':
+        return ['soiltemp1', 'soilhum1']
+      case 'sht2':
+        return ['soiltemp2', 'soilhum2']
+      case 'ws':
+        return ['windspeed']
+      break;
+      case 'ra':
+        return ['rainamount']
+      break;
+      case 'ps':
+        return ['atmopres']
+      break;
+      case 'sr':
+        return ['solarrad']
+      break;
+      
+      default:
+        return ['airtemp']
+    }
+  } 
+  function map30daysNames(paramName){
+    switch(paramName) {
+      case 'th':
+        return ['Temperature', 'Humidity' ]
+      case 'sht1':
+        return ['Soil Temperature 1', 'Soil Humidity 1']
+      case 'sht2':
+        return ['Soil Temperature 2', 'Soil Humidity 2']
+      case 'ws':
+        return ['Wind Speed']
+      break;
+      case 'ra':
+        return ['Rain Amount']
+      break;
+      case 'ps':
+        return ['Atmospheric Pressure']
+      break;
+      case 'sr':
+        return ['Solar Raddiation']
+      break;
+      
+      default:
+        return ['Temperature', 'Humidity' ]
+    }
+  } 
   const isValidParam = paramList.includes(param7days);
   if (!isValidParam) {
     console.log(`${param7days} is not a valid parameter.`);
@@ -472,7 +522,23 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
   
   const dataStation = await pool.getLatestDataByImei(stations[id])
 
-  const avg7days = await pool.getAverageAirTempForLastSevenDays(stations[id], daysavg)
+  var avg7days = ''
+  if(param30days !== undefined){
+
+    if(map30days(param30days).length == 2){
+      console.log("OVJDE")
+      console.log(map30days(param30days))
+      
+
+      avg7days = await pool.getAverageAirTempForLastSevenDays(stations[id], daysavg, map30days(param30days)[0], map30days(param30days)[1])
+    }
+    if(map30days(param30days).length == 1){
+      avg7days = await pool.getAverageAirTempForLastSevenDays(stations[id], daysavg, map30days(param30days)[0])
+    }
+
+  }else {
+    avg7days = await pool.getAverageAirTempForLastSevenDays(stations[id], daysavg)
+  }
 
   console.log(avg7days)
 
@@ -512,13 +578,13 @@ router.post('/getStationData/:id',/* checkSession ,*/ async (req, res) => {
     "ST2": dataStation.soiltemp2 + " °C",
     "STA": ((dataStation.soiltemp1 + dataStation.soiltemp2)/2.0).toFixed(0) + " °C", // Mora zaokruzeno na INT
     "L7DA":  [ {
-      "name": "Temperature",
+      "name": map30daysNames(param30days)[0],
       "data": avg7days.airtemp,
 
     },
     {
-      "name": "Humdity",
-      "data": avg7days.airhum,
+      "name": map30daysNames(param30days)[1],
+      "data": map30daysNames(param30days)[1] !== undefined ? avg7days.airhum : undefined,
     }, 
     {
       "categories": avg7days.dates,
