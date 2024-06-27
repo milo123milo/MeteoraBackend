@@ -286,8 +286,8 @@ console.log("IP: "+ req.clientIp)
 router.post('/login', auth.not, passport.authenticate('local', {
   failureFlash: true,
 }), (req, res, next) => {
-  
-  req.logOut()
+
+  res.clearCookie('connect.sid');
   const sessionID = req.sessionID;
 
   const username = req.user; // Access the username
