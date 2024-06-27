@@ -287,6 +287,7 @@ router.post('/login', auth.not, passport.authenticate('local', {
   failureFlash: true,
 }), (req, res, next) => {
   
+  req.logOut()
   const sessionID = req.sessionID;
 
   const username = req.user; // Access the username
