@@ -235,6 +235,54 @@ function deleteSubscriber(auth_key) {
     if (err) throw err;
   });
 }
+function getDataByImeiAndDateRange(imei, startDate, endDate, fields = [], offset = 0, limit = 100000) {
+  return new Promise((resolve, reject) => {
+    // If no fields are specified, select all columns
+    const selectFields = fields.length > 0 ? fields.join(", ") : "*";
+
+    // Prepare the WHERE clause based on imei parameter
+    console.log("IMEI: " + imei)
+    let imeiCondition = '';
+    let imeiValues = [];
+    
+    if (Array.isArray(imei) && imei.length > 0) {
+      // Use multiple imei values
+      imeiCondition = 'imei IN (?)';
+      imeiValues = [imei];
+    } else if (typeof imei === 'string' && imei.trim() !== '') {
+      // Single imei value
+      imeiCondition = 'imei = ?';
+      imeiValues = [imei];
+    } else {
+      // Ignore imei parameter if empty or invalid
+      imeiCondition = '1'; // Always true condition
+      imeiValues = [];
+    }
+
+    const sql = `
+      SELECT ${selectFields}
+      FROM data
+      WHERE ${imeiCondition}
+        AND datetime BETWEEN ? AND ?
+        ORDER BY datetime DESC
+      LIMIT ? OFFSET ?
+    `;
+
+    console.log(sql)
+    // Concatenate imeiValues with other bind parameters
+    const bindParams = [...imeiValues, startDate, endDate, limit, offset];
+
+    connection.query(sql, bindParams, (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    });
+  });
+}
+
+
 
 
 
@@ -256,5 +304,6 @@ module.exports = {
   getLatestDataByImeiAndFieldname,
   createSubscriber,
   getSubscribers,
-  deleteSubscriber
+  deleteSubscriber,
+  getDataByImeiAndDateRange
 };

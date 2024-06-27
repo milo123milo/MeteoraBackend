@@ -5,6 +5,8 @@ var router = express.Router();
 const passport = require('passport');
 var pool = require('../database/queries')
 const cors = require('cors');
+var role = require('./rules/roleCheck')
+
 
 
 
@@ -293,7 +295,7 @@ router.post('/login', auth.not, passport.authenticate('local', {
   console.log('User logged in:', username);
 
   // Successful login response
-  return res.status(200).json({ sessionID, message: 'Login successful' });
+  return res.status(200).json({ sessionID, message: 'Login successful', role: username.role });
 });
 
 router.get('/logout', auth.done, function(req, res) {
@@ -701,6 +703,8 @@ router.post("/unsubscribe", /* checkSession ,*/ async (req, res) => {
 
   res.status(200).json({ success: true, message: 'Subs deleted.' });
 });
+
+
 
 
 
