@@ -69,7 +69,11 @@ app.use(flash())
 app.use(session({
   secret: "secret",
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: { 
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    httpOnly: false
+},
 }))
 app.use(passport.initialize())
 app.use(passport.session())
