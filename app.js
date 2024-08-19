@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const cors = require('cors');
 const requestIp = require('request-ip');
+const cron = require('node-cron');
 
 
 
@@ -20,6 +21,8 @@ var adminRouter = require('./routes/admin');
 var dbAdminRouter = require('./routes/dbadmin');
 
 var initDB = require('./database/init')
+var notification = require('./routes/notifications')
+
 var app = express();
 
 initDB.initDatabase();
@@ -69,11 +72,7 @@ app.use(flash())
 app.use(session({
   secret: "secret",
   resave: false,
-  saveUninitialized: false,
-  cookie: { 
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-    httpOnly: false
-},
+  saveUninitialized: false
 }))
 app.use(passport.initialize())
 app.use(passport.session())
@@ -127,11 +126,11 @@ app.use(function(err, req, res, next) {
 
 
 
-
-
-
-
-
+cron.schedule('0 0 * * *', () => {
+  console.log('Running a task once a day at midnight');
+  // Add your task logic here
+});
+notification.notfAirTemp()
 
 
 

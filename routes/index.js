@@ -23,12 +23,12 @@ webpush.setVapidDetails(
 // Subscribe Route
 let subscriptions = [];
 
- function sendNotf(id, subs) {
+ function sendNotf(id, subs, text) {
   try {
     // Create payload
       // Create payload
     const stationID = id
-    const bodyString = "New Data From " + stationID
+    const bodyString = text + stationID
     const payload = JSON.stringify({ title: "Meteora Station", body: bodyString });
 
     // Loop through subscriptions and send notifications
@@ -419,7 +419,7 @@ router.post('/uploadData', rawBody, (req, res) => {
   var name = getLocationName(getStationName(adaptedData.imei))
   
   pool.getSubscribers((subscribers) => {
-    sendNotf(getStationName(adaptedData.imei) + ": " + name, subscribers)
+    sendNotf(getStationName(adaptedData.imei) + ": " + name, subscribers, "New Data From ")
   });
   
   
